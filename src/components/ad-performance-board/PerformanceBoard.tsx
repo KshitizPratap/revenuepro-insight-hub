@@ -847,7 +847,7 @@ export const PerformanceBoard = () => {
 
   return (
     <div className="px-6 pt-6 pb-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="w-[90%] mx-auto space-y-8">
         <PageHeader
           icon={LayoutPanelTop}
           title="Ad Performance Board"

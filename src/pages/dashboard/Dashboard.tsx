@@ -174,26 +174,25 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative z-10 pt-4 pb-12 px-4">
-        <div className="max-w-7xl mx-auto space-y-10">
+        <div className="w-[90%] mx-auto space-y-10">
           <PageHeader
             icon={BarChart3}
             title="Performance Dashboard"
             description="Track your key metrics and performance trends with comprehensive analytics"
           />
-        </div>
 
-        {/* Controls */}
-        <div className="max-w-7xl mx-auto mb-8">
-          <DatePeriodSelector
-            initialDate={selectedDate}
-            initialPeriod={period}
-            onChange={handleDatePeriodChange}
-            allowedPeriods={["monthly", "yearly", "ytd"]}
-          />
-        </div>
+          {/* Controls */}
+          <div className="mb-8">
+            <DatePeriodSelector
+              initialDate={selectedDate}
+              initialPeriod={period}
+              onChange={handleDatePeriodChange}
+              allowedPeriods={["monthly", "yearly", "ytd"]}
+            />
+          </div>
 
-        {/* Top Cards - Shown in both regular and admin view */}
-        <div className="max-w-7xl mx-auto">
+          {/* Top Cards - Shown in both regular and admin view */}
+          <div>
           <DashboardTopCards 
             reportingData={reportingData || []}
             processedTargetData={processedTargetData}
@@ -207,7 +206,7 @@ export const Dashboard = () => {
         {!isAdminView && (
           <>
             {/* Revenue Metrics Charts */}
-            <div className="max-w-7xl mx-auto mb-8">
+            <div className="mb-8">
               <MetricsLineCharts 
                 chartData={comprehensiveChartData} 
                 chartConfigs={revenueMetricsChartConfigs}
@@ -219,7 +218,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Funnel Metrics Charts */}
-            <div className="max-w-7xl mx-auto mb-8">
+            <div className="mb-8">
               <MetricsLineCharts 
                 chartData={comprehensiveChartData} 
                 chartConfigs={funnelMetricsChartConfigs}
@@ -235,7 +234,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Dual Metric Charts - Optimized */}
-            <div className="max-w-7xl mx-auto mb-6 p-6 bg-gradient-to-br rounded-lg from-background via-muted/15 to-primary/3 shadow-lg border border-border hover:shadow-2xl hover:border-primary/10 transition-all duration-300 group backdrop-blur-sm">
+            <div className="mb-6 p-6 bg-gradient-to-br rounded-lg from-background via-muted/15 to-primary/3 shadow-lg border border-border hover:shadow-2xl hover:border-primary/10 transition-all duration-300 group backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
                 <h3 className="text-[20px] font-semibold text-card-foreground">Cost Metrics</h3>
@@ -255,7 +254,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Performance Metrics Charts */}
-            <div className="max-w-7xl mx-auto mb-8">
+            <div className="mb-8">
               <MetricsLineCharts 
                 chartData={comprehensiveChartData} 
                 chartConfigs={performanceMetricsChartConfigs}
@@ -269,70 +268,71 @@ export const Dashboard = () => {
           </>
         )}
 
-        {/* Admin View Charts - Only shown when Admin View toggle is on */}
-        {isAdminView && isAdmin && (
-          <>
-            {/* First Block: Financial Overview - 2x2 Grid */}
-            <div className="max-w-7xl mx-auto mb-8">
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  <h3 className="text-[20px] font-semibold text-card-foreground">Financial Overview</h3>
-                </div>
+          {/* Admin View Charts - Only shown when Admin View toggle is on */}
+          {isAdminView && isAdmin && (
+            <>
+              {/* First Block: Financial Overview - 2x2 Grid */}
+              <div className="mb-8">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <h3 className="text-[20px] font-semibold text-card-foreground">Financial Overview</h3>
+                  </div>
  
-                <MetricsLineCharts 
-                  chartData={adminViewChartData} 
-                  chartConfigs={adminViewChartConfigs.filter(config => 
-                    ['budgetSpent', 'revenue', 'com', 'totalCom'].includes(config.key)
-                  )}
-                  title=""
-                  icon={<DollarSign className="h-5 w-5 text-green-600" />}
-                  gridCols="grid-cols-1 lg:grid-cols-2"
-                  periodType={period === "ytd" ? "yearly" : period === "weekly" ? "monthly" : period}
-                  selectedDate={selectedDate}
-                  hideTitle={true}
-                  hideBorder={true}
-                  hideTargets={true}
-                />
-              </div>
-            </div>
-
-            {/* Second Block: Performance Metrics - 3x1 Grid */}
-            <div className="max-w-7xl mx-auto mb-8">
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  <h3 className="text-[20px] font-semibold text-card-foreground">Performance Metrics</h3>
+                  <MetricsLineCharts 
+                    chartData={adminViewChartData} 
+                    chartConfigs={adminViewChartConfigs.filter(config => 
+                      ['budgetSpent', 'revenue', 'com', 'totalCom'].includes(config.key)
+                    )}
+                    title=""
+                    icon={<DollarSign className="h-5 w-5 text-green-600" />}
+                    gridCols="grid-cols-1 lg:grid-cols-2"
+                    periodType={period === "ytd" ? "yearly" : period === "weekly" ? "monthly" : period}
+                    selectedDate={selectedDate}
+                    hideTitle={true}
+                    hideBorder={true}
+                    hideTargets={true}
+                  />
                 </div>
- 
-                <MetricsLineCharts 
-                  chartData={adminViewChartData} 
-                  chartConfigs={adminViewChartConfigs.filter(config => 
-                    ['cpl', 'cpEstimateSet', 'appointmentRate'].includes(config.key)
-                  )}
-                  title=""
-                  icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-                  gridCols="grid-cols-1 lg:grid-cols-3"
-                  periodType={period === "ytd" ? "yearly" : period === "weekly" ? "monthly" : period}
-                  selectedDate={selectedDate}
-                  hideTitle={true}
-                  hideBorder={true}
-                  hideTargets={true}
-                />
               </div>
-            </div>
 
-            {/* Lead Analytics Charts */}
-            <div className="max-w-7xl mx-auto">
-              <LeadAnalyticsCharts leadAnalytics={leadAnalytics} />
-            </div>
+              {/* Second Block: Performance Metrics - 3x1 Grid */}
+              <div className="mb-8">
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-[20px] font-semibold text-card-foreground">Performance Metrics</h3>
+                  </div>
+ 
+                  <MetricsLineCharts 
+                    chartData={adminViewChartData} 
+                    chartConfigs={adminViewChartConfigs.filter(config => 
+                      ['cpl', 'cpEstimateSet', 'appointmentRate'].includes(config.key)
+                    )}
+                    title=""
+                    icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
+                    gridCols="grid-cols-1 lg:grid-cols-3"
+                    periodType={period === "ytd" ? "yearly" : period === "weekly" ? "monthly" : period}
+                    selectedDate={selectedDate}
+                    hideTitle={true}
+                    hideBorder={true}
+                    hideTargets={true}
+                  />
+                </div>
+              </div>
 
-            {/* Revenue Per Account Table - Below admin view charts */}
-            <div className="max-w-7xl mx-auto mb-8">
-              <RevenuePerAccountTable usersBudgetAndRevenue={usersBudgetAndRevenue} />
-            </div>
-          </>
-        )}
+              {/* Lead Analytics Charts */}
+              <div>
+                <LeadAnalyticsCharts leadAnalytics={leadAnalytics} />
+              </div>
+
+              {/* Revenue Per Account Table - Below admin view charts */}
+              <div className="mb-8">
+                <RevenuePerAccountTable usersBudgetAndRevenue={usersBudgetAndRevenue} />
+              </div>
+            </>
+          )}
+        </div>
       </div>
       
       {/* Release Notes Modal */}

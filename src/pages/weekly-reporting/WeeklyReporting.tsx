@@ -520,32 +520,31 @@ React.useEffect(() => {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative z-10 pt-4 pb-12 px-4">
-        <div className="max-w-7xl mx-auto space-y-10">
+        <div className="w-[90%] mx-auto space-y-10">
           <PageHeader
             icon={Plus}
             title="Weekly Reporting"
             description="Enter your weekly performance metrics for tracking and analysis"
           />
-        </div>
 
-        <div className="max-w-7xl mx-auto mb-8">
-          <DatePeriodSelector
-            initialDate={selectedDate}
-            initialPeriod={period}
-            onChange={handleDatePeriodChange}
-            buttonText="Save Report"
-            onButtonClick={handleSave}
-            disableLogic={{
-              ...disableLogic,
-              isButtonDisabled: disableLogic.isButtonDisabled || !hasChanges,
-            }}
-            onNavigationAttempt={(_: Date, __: PeriodType) => {
-              return true;
-            }}
-          />
-        </div>
+          <div className="mb-8">
+            <DatePeriodSelector
+              initialDate={selectedDate}
+              initialPeriod={period}
+              onChange={handleDatePeriodChange}
+              buttonText="Save Report"
+              onButtonClick={handleSave}
+              disableLogic={{
+                ...disableLogic,
+                isButtonDisabled: disableLogic.isButtonDisabled || !hasChanges,
+              }}
+              onNavigationAttempt={(_: Date, __: PeriodType) => {
+                return true;
+              }}
+            />
+          </div>
 
-        <div className="flex flex-col gap-8 mb-8">
+          <div className="flex flex-col gap-8 mb-8">
           <TargetReport
             title="Target Report"
             icon={<TrendingUp className="h-5 w-5 text-accent" />}
@@ -616,16 +615,17 @@ React.useEffect(() => {
           )}
         </div>
 
-        {/* Daily Budget + Ad Names Amount (Weekly only) placed below sections */}
-        {period === 'weekly' && (
-          <div className="w-full mx-auto mb-8">
-            <DailyBudgetManager
-              selectedDate={selectedDate}
-              weeklyBudget={Number(calculatedValues?.weeklyBudget || 0)}
-              initialAdNamesAmount={(reportingData && reportingData[0]?.adNamesAmount) || []}
-            />
-          </div>
-        )}
+          {/* Daily Budget + Ad Names Amount (Weekly only) placed below sections */}
+          {period === 'weekly' && (
+            <div className="w-full mb-8">
+              <DailyBudgetManager
+                selectedDate={selectedDate}
+                weeklyBudget={Number(calculatedValues?.weeklyBudget || 0)}
+                initialAdNamesAmount={(reportingData && reportingData[0]?.adNamesAmount) || []}
+              />
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Opportunity Sync Confirmation Modal */}

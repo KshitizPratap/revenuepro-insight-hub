@@ -561,89 +561,88 @@ export const SetTargets = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative z-10 pt-4 pb-12 px-4">
-        <div className="max-w-7xl mx-auto space-y-10">
+        <div className="w-[90%] mx-auto space-y-10">
           <PageHeader
             icon={Target}
             title="Set Targets"
             description="Configure your business targets and KPIs with precision"
           />
-        </div>
 
-        <div className="max-w-7xl mx-auto mb-2">
-          <DatePeriodSelector
-            initialDate={selectedDate}
-            initialPeriod={period}
-            onChange={handleDatePeriodChange}
-            buttonText="Save Targets"
-            onButtonClick={handleSave}
-            disableLogic={{
-              ...disableLogic
-            }}
-            onDisableStatusChange={handleDisableStatusChange}
-            onNavigationAttempt={() => true} // Always allow navigation
-          />
-        </div>
-
-        {period === "yearly" && (
-          <div className="max-w-7xl mx-auto mb-6">
-            <Card className="bg-gradient-to-br from-background via-muted/15 to-primary/3 shadow-lg border border-border hover:shadow-lg hover:border-primary/10 transition-all duration-300 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    {createYearlyTarget ? (
-                      <p className="text-muted-foreground text-sm">
-                        Please set the yearly targets from{" "}
-                        <i>
-                          {format(
-                            new Date(
-                              new Date().getFullYear(),
-                              new Date().getMonth() + 1,
-                              1
-                            ),
-                            "MMMM yyyy"
-                          )}
-                        </i>{" "}
-                        to <i>December {selectedYear}</i>. To view yearly aggregated targets, please click{" "}
-                        <span
-                          className="text-primary cursor-pointer underline"
-                          onClick={viewYearlyTargets}
-                        >
-                          here
-                        </span>
-                        .
-                      </p>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">
-                        Below yearly targets are aggregated for the whole year.
-                        To create a new yearly targets from{" "}
-                        <i>
-                          {format(
-                            new Date(
-                              new Date().getFullYear(),
-                              new Date().getMonth() + 1,
-                              1
-                            ),
-                            "MMMM yyyy"
-                          )}
-                        </i>{" "}
-                        to <i>December {selectedYear}</i>, please click{" "}
-                        <span
-                          className="text-primary cursor-pointer underline"
-                          onClick={resetYearlyTargets}
-                        >
-                          here
-                        </span>
-                        .
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="mb-2">
+            <DatePeriodSelector
+              initialDate={selectedDate}
+              initialPeriod={period}
+              onChange={handleDatePeriodChange}
+              buttonText="Save Targets"
+              onButtonClick={handleSave}
+              disableLogic={{
+                ...disableLogic
+              }}
+              onDisableStatusChange={handleDisableStatusChange}
+              onNavigationAttempt={() => true} // Always allow navigation
+            />
           </div>
-        )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {period === "yearly" && (
+            <div className="mb-6">
+              <Card className="bg-gradient-to-br from-background via-muted/15 to-primary/3 shadow-lg border border-border hover:shadow-lg hover:border-primary/10 transition-all duration-300 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      {createYearlyTarget ? (
+                        <p className="text-muted-foreground text-sm">
+                          Please set the yearly targets from{" "}
+                          <i>
+                            {format(
+                              new Date(
+                                new Date().getFullYear(),
+                                new Date().getMonth() + 1,
+                                1
+                              ),
+                              "MMMM yyyy"
+                            )}
+                          </i>{" "}
+                          to <i>December {selectedYear}</i>. To view yearly aggregated targets, please click{" "}
+                          <span
+                            className="text-primary cursor-pointer underline"
+                            onClick={viewYearlyTargets}
+                          >
+                            here
+                          </span>
+                          .
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">
+                          Below yearly targets are aggregated for the whole year.
+                          To create a new yearly targets from{" "}
+                          <i>
+                            {format(
+                              new Date(
+                                new Date().getFullYear(),
+                                new Date().getMonth() + 1,
+                                1
+                              ),
+                              "MMMM yyyy"
+                            )}
+                          </i>{" "}
+                          to <i>December {selectedYear}</i>, please click{" "}
+                          <span
+                            className="text-primary cursor-pointer underline"
+                            onClick={resetYearlyTargets}
+                          >
+                            here
+                          </span>
+                          .
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <TargetSection
             sectionKey="funnelRate"
             title="Funnel Rates"
@@ -705,6 +704,7 @@ export const SetTargets = () => {
               disableStatus.shouldDisableNonRevenueFields
             }
           />
+          </div>
         </div>
       </div>
 

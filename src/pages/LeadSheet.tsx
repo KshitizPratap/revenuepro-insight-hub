@@ -726,32 +726,32 @@ export const LeadSheet = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
       <div className="relative z-10 pt-6 pb-16 px-4">
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="w-[90%] mx-auto space-y-8">
           <PageHeader
             icon={Users}
             title="Lead Center"
             description="Track and manage your leads with detailed information and lead status"
           />
-        </div>
 
-        {/* Controls */}
-        <div className="max-w-7xl mx-auto mb-8">
-          <LeadDateTimeSelector
-            initialDate={selectedDate}
-            initialPeriod={period}
-            allowedPeriods={["weekly", "monthly", "yearly", "ytd", "custom"]}
-            onChange={(date, p) => {
-              setCustomRange(null);
-              handleDatePeriodChange(date, p as any);
-            }}
-            onCustomRangeChange={(range) => {
-              setPeriod("custom");
-              setCustomRange(range);
-            }}
-          />
+          {/* Controls */}
+          <div className="mb-8">
+            <LeadDateTimeSelector
+              initialDate={selectedDate}
+              initialPeriod={period}
+              allowedPeriods={["weekly", "monthly", "yearly", "ytd", "custom"]}
+              onChange={(date, p) => {
+                setCustomRange(null);
+                handleDatePeriodChange(date, p as any);
+              }}
+              onCustomRangeChange={(range) => {
+                setPeriod("custom");
+                setCustomRange(range);
+              }}
+            />
+          </div>
 
           {/* Lead Cards */}
-          <div className="max-w-7xl mx-auto space-y-6">
+          <div className="space-y-6">
             {filterOptionsLoading ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-pulse" />

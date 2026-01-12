@@ -423,7 +423,7 @@ export const LeadAnalytics = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
       <div className="relative z-10 pt-4 pb-12 px-4">
-        <div className="max-w-7xl mx-auto space-y-10 w-full">
+        <div className="w-[90%] mx-auto space-y-10">
           <PageHeader
             icon={BarChart3}
             title="Lead Analytics"

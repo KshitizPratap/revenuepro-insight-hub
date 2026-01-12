@@ -490,28 +490,27 @@ export const CompareResults = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="relative z-10 pt-6 pb-16 px-4">
-        <div className="max-w-7xl mx-auto space-y-12">
+        <div className="w-[90%] mx-auto space-y-12">
           <PageHeader
             icon={TrendingUp}
             title="Target Vs Actual"
             description="Compare your actual performance against targets with calculated metrics"
           />
-        </div>
 
-        {/* Controls */}
-        <div className="max-w-7xl mx-auto mb-10">
-            <DatePeriodSelector
-              initialDate={selectedDate}
-              initialPeriod={period}
-              onChange={handleDatePeriodChange}
-              buttonText="Export to Excel"
-              onButtonClick={handleExport}
-              allowedPeriods={["weekly", "monthly", "yearly", "ytd"]}
-            />
-        </div>
+          {/* Controls */}
+          <div className="mb-10">
+              <DatePeriodSelector
+                initialDate={selectedDate}
+                initialPeriod={period}
+                onChange={handleDatePeriodChange}
+                buttonText="Export to Excel"
+                onButtonClick={handleExport}
+                allowedPeriods={["weekly", "monthly", "yearly", "ytd"]}
+              />
+          </div>
 
-        {/* Metrics Tables Grid */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Metrics Tables Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {metrics.map((section) => (
             <Card key={section.category} className="p-6 shadow-lg transition-all duration-300 border hover:shadow-2xl border-primary/10 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
               <h3 className="text-xl font-semibold text-card-foreground mb-6 flex items-center gap-2">
@@ -623,6 +622,7 @@ export const CompareResults = () => {
               </div>
             </Card>
           ))}
+          </div>
         </div>
       </div>
       
