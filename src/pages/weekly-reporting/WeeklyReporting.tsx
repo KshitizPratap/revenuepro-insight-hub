@@ -124,7 +124,7 @@ export const AddActualData = () => {
   React.useEffect(() => {
     const { startDate, endDate, queryType } = getDateRange(selectedDate, period);
     getReportingData(startDate, endDate, queryType, period);
-  }, [selectedDate, period, selectedUserId, getReportingData, getDateRange]);
+  }, [selectedDate, period, selectedUserId]);
 
   // Fetch Facebook enriched ads data for campaign section
   React.useEffect(() => {

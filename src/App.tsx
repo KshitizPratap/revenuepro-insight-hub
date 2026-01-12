@@ -25,13 +25,14 @@ import { DataProvider } from "@/contexts/DataContext";
 import Profile from "@/pages/profile/Profile";
 import ReleaseNotes from "@/pages/ReleaseNotes";
 import OAuthCallbackHandler from "@/components/OAuthCallbackHandler";
+import { ContentLoader } from "@/components/ui/content-loader";
 
 const AppRoutes = () => {
   const { isVerifying } = useUserContext();
 
   return (
     <>
-      <FullScreenLoader isLoading={isVerifying} message="Verifying authentication..." />
+      <ContentLoader isLoading={isVerifying} message="Verifying authentication..." />
       <OAuthCallbackHandler />
       <DataProvider>
         <Routes>
