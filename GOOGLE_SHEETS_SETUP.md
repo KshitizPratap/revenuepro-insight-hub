@@ -9,7 +9,7 @@ This guide will help you set up Google Sheets API integration for the export fun
 
 ## Step 1: Create a Google Cloud Project
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) 
 2. Create a new project or select an existing one
 3. Enable billing for the project (required for API usage)
 
