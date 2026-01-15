@@ -1,4 +1,4 @@
-export type SortField = 'userName' | 'totalRevenue' | 'totalBudgetSpent' | 'costOfMarketingPercent';
+export type SortField = 'userName' | 'totalRevenue' | 'totalBudgetSpent' | 'costOfMarketingPercent' | 'costPerEstimateSet';
 
 export interface TableHeaderConfig {
   label: string;
@@ -36,6 +36,11 @@ export const REVENUE_TABLE_HEADERS: TableHeaderConfig[] = [
   },
   {
     label: 'Estimate Set%',
+    align: 'right',
+  },
+  {
+    label: 'Cost Per Estimate Set',
+    sortField: 'costPerEstimateSet',
     align: 'right',
   },
   {

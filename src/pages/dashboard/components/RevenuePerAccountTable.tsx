@@ -74,6 +74,11 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
       } else if (sortField === 'costOfMarketingPercent') {
         aValue = calculateCostOfMarketingPercent(a.totalBudgetSpent || 0, a.totalRevenue || 0);
         bValue = calculateCostOfMarketingPercent(b.totalBudgetSpent || 0, b.totalRevenue || 0);
+      } else if (sortField === 'costPerEstimateSet') {
+        const aEstimates = a.actualEstimateSet || 0;
+        const bEstimates = b.actualEstimateSet || 0;
+        aValue = aEstimates > 0 ? (a.totalBudgetSpent || 0) / aEstimates : 0;
+        bValue = bEstimates > 0 ? (b.totalBudgetSpent || 0) / bEstimates : 0;
       } else {
         aValue = a.userName || '';
         bValue = b.userName || '';
@@ -160,18 +165,19 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
         </div>
 
         <div className="border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
+          <div className="overflow-auto max-h-[600px]">
+            <table className="w-full caption-bottom text-sm">
+              <thead style={{ position: 'sticky', top: 0, backgroundColor: 'hsl(var(--background))', zIndex: 10, boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
+              <tr className="border-b">
                 {REVENUE_TABLE_HEADERS.map((header, index) => {
                   const isRightAligned = header.align === 'right';
                   const isSortable = !!header.sortField;
                   const buttonClassName = 'h-8 -ml-3 hover:bg-transparent hover:text-black';
 
                   return (
-                    <TableHead
+                    <th
                       key={index}
-                      className={`${header.className || ''} ${isRightAligned ? 'text-right' : ''}`}
+                      className={`h-12 px-4 text-left align-middle font-medium text-muted-foreground ${header.className || ''} ${isRightAligned ? 'text-right' : ''}`}
                     >
                       {header.isSpecial ? (
                         header.label
@@ -198,22 +204,23 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
                           </Button>
                         </div>
                       )}
-                    </TableHead>
+                    </th>
                   );
                 })}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+              </tr>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
               {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <tr className="border-b transition-colors hover:bg-muted/50">
+                  <td colSpan={8} className="p-4 align-middle text-center py-8 text-muted-foreground">
                     No accounts found matching your search
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : (
                 paginatedData.map((user, index) => {
-                  const { estimateSetCount, disqualifiedLeadsCount, totalRevenue, totalBudgetSpent, actualLeads } = user;
+                  const { estimateSetCount, disqualifiedLeadsCount, totalRevenue, totalBudgetSpent, actualLeads, actualEstimateSet } = user;
                   const costPerLead = actualLeads > 0 ? totalBudgetSpent / actualLeads : 0;
+                  const costPerEstimateSet = (actualEstimateSet || 0) > 0 ? totalBudgetSpent / (actualEstimateSet || 0) : 0;
                   const costOfMarketingPercent = calculateCostOfMarketingPercent(
                     totalBudgetSpent || 0,
                     totalRevenue || 0
@@ -221,44 +228,50 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
                   const estimateSetPercent = estimateSetCount === 0 ? 0 : (estimateSetCount/(estimateSetCount + disqualifiedLeadsCount)*100).toFixed(2);
 
                   return (
-                    <TableRow key={user.userId}>
-                      <TableCell className="text-muted-foreground">
+                    <tr key={user.userId} className="border-b transition-colors hover:bg-muted/50">
+                      <td className="p-4 align-middle text-muted-foreground">
                         {startIndex + index + 1}
-                      </TableCell>
-                      <TableCell className="font-medium">
+                      </td>
+                      <td className="p-4 align-middle font-medium">
                         {user.userName || user.userEmail || 'Unknown User'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className=" pr-10">
+                      </td>
+                      <td className="p-4 align-middle text-right">
+                        <div className="pr-10">
                             {formatCurrency(totalBudgetSpent || 0)}</div>
                         
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="p-4 align-middle text-right">
                         <div className="pr-10">
                           {formatCurrency(totalRevenue || 0)}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="p-4 align-middle text-right">
                         <div className="pr-10">
                         {costOfMarketingPercent.toFixed(2)}%
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="p-4 align-middle text-right">
                         <div className="pr-10">
                         {estimateSetPercent}%
                         </div>
-                      </TableCell>
-                      <TableCell className="text-left">
+                      </td>
+                      <td className="p-4 align-middle text-right">
+                        <div className="pr-10">
+                        ${costPerEstimateSet.toFixed(2)}
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle text-left">
                         <div className="px-5">
                         ${costPerLead.toFixed(2)}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
+          </div>
         </div>
 
         {/* Pagination */}
