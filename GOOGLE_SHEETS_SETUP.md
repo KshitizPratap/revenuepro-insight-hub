@@ -4,7 +4,7 @@ This guide will help you set up Google Sheets API integration for the export fun
 
 ## Prerequisites
 
-1. A Google account
+1. A Google account 
 2. Access to Google Cloud Console
 
 ## Step 1: Create a Google Cloud Project
