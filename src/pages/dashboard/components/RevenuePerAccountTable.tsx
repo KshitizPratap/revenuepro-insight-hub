@@ -75,8 +75,8 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
         aValue = calculateCostOfMarketingPercent(a.totalBudgetSpent || 0, a.totalRevenue || 0);
         bValue = calculateCostOfMarketingPercent(b.totalBudgetSpent || 0, b.totalRevenue || 0);
       } else if (sortField === 'costPerEstimateSet') {
-        const aEstimates = a.actualEstimateSet || 0;
-        const bEstimates = b.actualEstimateSet || 0;
+        const aEstimates = a.estimateSetCount || 0;
+        const bEstimates = b.estimateSetCount || 0;
         aValue = aEstimates > 0 ? (a.totalBudgetSpent || 0) / aEstimates : 0;
         bValue = bEstimates > 0 ? (b.totalBudgetSpent || 0) / bEstimates : 0;
       } else {
@@ -220,7 +220,7 @@ export const RevenuePerAccountTable: React.FC<RevenuePerAccountTableProps> = ({
                 paginatedData.map((user, index) => {
                   const { estimateSetCount, disqualifiedLeadsCount, totalRevenue, totalBudgetSpent, actualLeads, actualEstimateSet } = user;
                   const costPerLead = actualLeads > 0 ? totalBudgetSpent / actualLeads : 0;
-                  const costPerEstimateSet = (actualEstimateSet || 0) > 0 ? totalBudgetSpent / (actualEstimateSet || 0) : 0;
+                  const costPerEstimateSet = (estimateSetCount || 0) > 0 ? totalBudgetSpent / (estimateSetCount || 0) : 0;
                   const costOfMarketingPercent = calculateCostOfMarketingPercent(
                     totalBudgetSpent || 0,
                     totalRevenue || 0
