@@ -112,8 +112,12 @@ export interface PerformanceRow {
   thumbstop_rate?: number;
   conversion_rate?: number;
   see_more_rate?: number;
+  averageJobSize?: number | null;
+  holdRate?: number | null;
+  costPerLinkClick?: number | null;
+  resultRate?: number | null;
   optimizationGoal?: string;
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | undefined | null;
 }
 
 export interface PerformanceBoardAverages {

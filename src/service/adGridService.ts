@@ -34,23 +34,30 @@ export interface AdGridAd {
   // Additional fields for display
   numberOfLeads?: number;
   numberOfEstimateSets?: number;
-  creative?: {
-    id: string;
-    name?: string;
-    creativeType?: 'image' | 'video' | 'carousel' | 'link' | 'other';
-    thumbnailUrl?: string;
-    imageUrl?: string;
-    imageHash?: string;
-    videoId?: string;
-    videos?: Array<{
+    creative?: {
       id: string;
-      url: string;
+      name?: string;
+      creativeType?: 'image' | 'video' | 'carousel' | 'link' | 'other';
       thumbnailUrl?: string;
-      duration?: number;
-    }>;
-    primaryText?: string;
-    headline?: string;
-  };
+      imageUrl?: string;
+      imageHash?: string;
+      videoId?: string;
+      videos?: Array<{
+        id: string;
+        url: string;
+        thumbnailUrl?: string;
+        duration?: number;
+      }>;
+      primary_text?: string; // API snake_case format
+      headline?: string;
+      callToAction?: {
+        type?: string;
+        value?: any;
+      };
+      description?: string;
+      body?: string;
+      childAttachments?: any[];
+    };
 }
 
 interface AdGridServiceResponse {
