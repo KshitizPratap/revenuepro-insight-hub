@@ -32,7 +32,7 @@ interface AdCardProps {
         thumbnailUrl?: string;
         duration?: number;
       }>;
-      primaryText?: string;
+      primary_text?: string;
       headline?: string;
     };
   };
