@@ -31,7 +31,7 @@ export interface IReportingResponse {
 
 export interface ILeadAnalytics {
   dayOfWeekData: DayOfWeekAnalyticsDataPoint[];
-  unqualifiedReasons: UnqualifiedReasonAnalyticsDataPoint[];
+  unqualifiedReasonsData: UnqualifiedReasonAnalyticsDataPoint[];
 }
 
 export const getReportingData = async (

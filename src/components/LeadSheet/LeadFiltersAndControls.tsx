@@ -1,10 +1,11 @@
-import React from 'react';
-import { Calendar, Star, Download, Trash2, Search, X, RefreshCw, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Star, Download, Trash2, Search, X, RefreshCw, Loader2, Plus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { getStatusInfo } from '@/utils/leads/leadProcessing';
+import { AddLeadsModal } from './AddLeadsModal';
 
 interface CurrentFilters {
   adSetName?: string;
@@ -46,6 +47,8 @@ interface LeadFiltersAndControlsProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   isCurrentWeek: boolean;
+  clientId: string | null;
+  onLeadAdded?: () => void;
 }
 
 export const LeadFiltersAndControls = React.memo(({
@@ -67,8 +70,13 @@ export const LeadFiltersAndControls = React.memo(({
   handleBulkDelete,
   onRefresh,
   isRefreshing,
-  isCurrentWeek
-}: LeadFiltersAndControlsProps) => (
+  isCurrentWeek,
+  clientId,
+  onLeadAdded
+}: LeadFiltersAndControlsProps) => {
+  const [isAddLeadsModalOpen, setIsAddLeadsModalOpen] = useState(false);
+
+  return (
   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-lg p-4">
     {/* Filters Section - Appears Above When Toggled */}
     {showFilters && (
@@ -375,6 +383,15 @@ export const LeadFiltersAndControls = React.memo(({
           </TooltipProvider>
         )}
         
+        {/* Add Leads Button */}
+        <button
+          onClick={() => setIsAddLeadsModalOpen(true)}
+          className="h-8 flex items-center gap-1 px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium shadow-sm border-0"
+        >
+          <Plus className="w-3 h-3" />
+          Add Leads
+        </button>
+        
         {/* Export Dropdown */}
         <Select onValueChange={(value) => exportToExcel(value as 'current' | 'all')}>
           <SelectTrigger 
@@ -394,8 +411,17 @@ export const LeadFiltersAndControls = React.memo(({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Add Leads Modal */}
+      <AddLeadsModal
+        isOpen={isAddLeadsModalOpen}
+        onOpenChange={setIsAddLeadsModalOpen}
+        clientId={clientId}
+        onSuccess={onLeadAdded}
+      />
     </div>
   </div>
-));
+  );
+});
 
 LeadFiltersAndControls.displayName = 'LeadFiltersAndControls';

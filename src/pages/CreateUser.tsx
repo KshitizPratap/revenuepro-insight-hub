@@ -106,6 +106,12 @@ const CreateUser = () => {
     return ghlClients.some((client) => client.revenueProClientId === userId);
   };
 
+  // Helper function to check if Meta account is connected for a user
+  const hasMetaAccount = (userId: string): boolean => {
+    const user = users.find((u) => u.id === userId);
+    return !!user?.fbAdAccountId;
+  };
+
   // Filter users based on search query, role filter, and status filter
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -648,7 +654,7 @@ const CreateUser = () => {
                             variant="ghost"
                             size="sm"
                             className={`flex items-center px-2 gap-1 font-medium rounded-md transition-colors ${
-                              hasGhlClient(user.id)
+                              hasMetaAccount(user.id)
                                 ? "text-blue-600 hover:bg-blue-100 hover:text-blue-700"
                                 : "text-gray-400 hover:bg-gray-100 hover:text-gray-500"
                             }`}
@@ -658,18 +664,18 @@ const CreateUser = () => {
                                 user.name || user.email
                               )
                             }
-                            aria-label="GHL Client"
+                            aria-label="Meta Account"
                             title={
-                              hasGhlClient(user.id)
-                                ? "Manage GHL Client Configuration"
-                                : "Configure GHL Client"
+                              hasMetaAccount(user.id)
+                                ? "Manage Meta Account Configuration"
+                                : "Configure Meta Account"
                             }
                           >
                             <img 
-                              src="/ghl.png" 
-                              alt="GHL" 
-                              className={`h-4 w-4 object-contain transition-all ${
-                                hasGhlClient(user.id)
+                              src="/meta.png" 
+                              alt="Meta" 
+                              className={`h-6 w-6 object-contain transition-all ${
+                                hasMetaAccount(user.id)
                                   ? ""
                                   : "grayscale opacity-60"
                               }`}
