@@ -32,27 +32,27 @@ export const getScoreInfo = (score: number) => {
 export const getStatusInfo = (status: string) => {
   switch (status) {
     case 'new':
-      return { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'New' };
+      return { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'New', dotColor: 'bg-blue-500' };
     case 'in_progress':
-      return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'In Progress' };
+      return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'In Progress', dotColor: 'bg-yellow-500' };
     case 'estimate_set':
-      return { color: 'bg-green-100 text-green-800 border-green-200', label: 'Estimate Set' };
+      return { color: 'bg-green-100 text-green-800 border-green-200', label: 'Estimate Set', dotColor: 'bg-green-500' };
     case 'virtual_quote':
-      return { color: 'bg-purple-100 text-purple-800 border-purple-200', label: 'Virtual Quote' };
+      return { color: 'bg-purple-100 text-purple-800 border-purple-200', label: 'Virtual Quote', dotColor: 'bg-purple-500' };
     case 'estimate_canceled':
-      return { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Estimate Canceled' };
+      return { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Estimate Canceled', dotColor: 'bg-orange-500' };
     case 'proposal_presented':
-      return { color: 'bg-teal-100 text-teal-800 border-teal-200', label: 'Proposal Presented' };
+      return { color: 'bg-teal-100 text-teal-800 border-teal-200', label: 'Proposal Presented', dotColor: 'bg-teal-500' };
     case 'job_booked':
-      return { color: 'bg-green-100 text-green-800 border-green-200', label: 'Job Booked' };
+      return { color: 'bg-green-100 text-green-800 border-green-200', label: 'Job Booked', dotColor: 'bg-green-500' };
     case 'job_lost':
-      return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Job Lost' };
+      return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Job Lost', dotColor: 'bg-red-500' };
     case 'estimate_rescheduled':
-      return { color: 'bg-indigo-100 text-indigo-800 border-indigo-200', label: 'Estimate Rescheduled' };
+      return { color: 'bg-indigo-100 text-indigo-800 border-indigo-200', label: 'Estimate Rescheduled', dotColor: 'bg-indigo-500' };
     case 'unqualified':
-      return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Unqualified' };
+      return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Unqualified', dotColor: 'bg-red-500' };
     default:
-      return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: 'Unknown' };
+      return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: 'Unknown', dotColor: 'bg-gray-500' };
   }
 };
 

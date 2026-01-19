@@ -243,6 +243,9 @@ export const PerformanceBoard = () => {
 
 
   // Debounce search input
+  // NOTE: Do NOT include appliedFilters in the dependency array here,
+  // otherwise handleApplyFilters (which updates appliedFilters) will
+  // retrigger this effect and cause repeated calls.
   useEffect(() => {
     const timer = setTimeout(() => {
       const parts = searchInputValue
@@ -259,11 +262,17 @@ export const PerformanceBoard = () => {
       } else {
         update.adName = parsed;
       }
-      handleApplyFilters({ ...appliedFilters, ...update });
+
+      // Use functional update so we always base on the latest appliedFilters
+      setAppliedFilters((prev) => {
+        const next = { ...prev, ...update };
+        setFilters(next);
+        return next;
+      });
     }, 500); // 500ms debounce delay
 
     return () => clearTimeout(timer);
-  }, [searchInputValue, groupBy, appliedFilters]); // Fixed: Added missing dependencies
+  }, [searchInputValue, groupBy]);
 
   // Reset search filter when groupBy changes (but skip on initial mount)
   useEffect(() => {

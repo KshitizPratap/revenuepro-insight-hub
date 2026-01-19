@@ -78,7 +78,7 @@ export const LeadTiles = React.memo(({
     setShowCustomInput: (value: string | null) => void;
     formatDate: (dateString: string) => string;
     getScoreInfo: (score: number) => { color: string; label: string };
-    getStatusInfo: (status: string) => { color: string; label: string };
+    getStatusInfo: (status: string) => { color: string; label: string; dotColor: string };
     FIELD_WEIGHTS: { zip: number; service: number; adSetName: number; adName: number };
   }) => {
     // State for managing amount inputs

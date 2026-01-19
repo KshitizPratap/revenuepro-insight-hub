@@ -1,4 +1,5 @@
 import { Video, Image as ImageIcon, LayoutGrid, Link as LinkIcon, FileQuestion, Layers } from 'lucide-react';
+import { getMediaTypeLabel, AdCardMedia } from '@/utils/adMediaUtils';
 
 interface AdCardProps {
   ad: {
@@ -21,19 +22,26 @@ interface AdCardProps {
     creative?: {
       id: string;
       name?: string;
-      creativeType?: 'image' | 'video' | 'carousel' | 'link' | 'other';
+      mediaType?: 'IMAGE' | 'VIDEO' | 'MIXED';
+      creativeMode?: 'STATIC' | 'STATIC_CAROUSEL' | 'DYNAMIC_ASSET_FEED' | 'DYNAMIC_CATALOG';
       thumbnailUrl?: string;
-      imageUrl?: string;
-      imageHash?: string;
-      videoId?: string;
-      videos?: Array<{
-        id: string;
-        url: string;
-        thumbnailUrl?: string;
-        duration?: number;
-      }>;
-      primaryText?: string;
+      imageHashes?: string[];
+      imageUrls?: string[];
+      videoIds?: string[];
+      videoUrls?: string[];
+      previewIframe?: string[];
+      primary_text?: string;
       headline?: string;
+      description?: string;
+      body?: string;
+      childAttachments?: Array<{
+        name?: string;
+        description?: string;
+        imageUrl?: string;
+        imageHash?: string;
+        link?: string;
+        videoId?: string;
+      }>;
     };
   };
   conversionScore?: number;
@@ -89,62 +97,8 @@ const ScoreMetric = ({ label, score, tooltip }: { label: string; score: number; 
 export function AdCard({ ad, conversionScore, hookScore, onClick }: AdCardProps) {
   const creative = ad.creative;
 
-  // Determine creative type info
-  const getCreativeTypeInfo = () => {
-    if (!creative) return { icon: ImageIcon, label: 'No Creative' };
-
-    switch (creative.creativeType) {
-      case 'video':
-        return { icon: Video, label: 'Video' };
-      case 'carousel':
-        return { icon: LayoutGrid, label: 'Carousel' };
-      case 'link':
-        return { icon: LinkIcon, label: 'Link' };
-      case 'image':
-        return { icon: ImageIcon, label: 'Image' };
-      default:
-        return { icon: FileQuestion, label: 'Other' };
-    }
-  };
-
-  const typeInfo = getCreativeTypeInfo();
-
-  // Get the best available image/thumbnail
-  const getMediaUrl = () => {
-    if (!creative) return null;
-
-    // For image ads, use imageUrl (high-res)
-    if (creative.creativeType === 'image' && creative.imageUrl) {
-      return creative.imageUrl;
-    }
-
-    // For video, carousel, link, and other types, use thumbnailUrl
-    return creative.thumbnailUrl || creative.videos?.[0]?.thumbnailUrl || null;
-  };
-
-  // Get video URL for video ads
-  const getVideoUrl = () => {
-    if (!creative || creative.creativeType !== 'video') return null;
-    // Check if videos array exists and has items
-    if (!creative.videos || creative.videos.length === 0) return null;
-    // Check multiple possible video URL locations
-    return creative.videos[0]?.url || creative.videoId || null;
-  };
-
-  const mediaUrl = getMediaUrl();
-  const videoUrl = getVideoUrl();
-  const isVideo = creative?.creativeType === 'video';
-  const hasVideos = creative?.videos && creative.videos.length > 0;
-
-  // Debug log to see what data we have
-  if (isVideo) {
-    console.log('Video Ad:', {
-      adName: ad.adName,
-      videoUrl,
-      hasVideos,
-      creative,
-    });
-  }
+  // Get media type info using new helper
+  const typeInfo = getMediaTypeLabel(creative);
 
   // Format currency
   const formatCurrency = (value?: number | null) => {
@@ -182,93 +136,7 @@ export function AdCard({ ad, conversionScore, hookScore, onClick }: AdCardProps)
     >
       {/* Media */}
       <div className="relative aspect-video bg-gray-100 overflow-hidden">
-        {isVideo && videoUrl ? (
-          // Video with actual video URL
-          <video
-            src={videoUrl}
-            className="w-full h-full object-cover"
-            preload="metadata"
-            playsInline
-            muted
-            crossOrigin="anonymous"
-          />
-        ) : isVideo && !hasVideos ? (
-          // Video type but no videos array - show video icon with thumbnail background
-          <div className="relative w-full h-full">
-            {mediaUrl && (
-              <img
-                src={mediaUrl}
-                alt={ad.adName || 'Ad creative'}
-                className="w-full h-full object-cover opacity-40"
-                loading="eager"
-                crossOrigin="anonymous"
-              />
-            )}
-            <div className="absolute inset-0 flex items-center justify-center">
-             
-            </div>
-          </div>
-        ) : creative?.creativeType === 'image' && mediaUrl ? (
-          // Image with URL
-          <img
-            src={mediaUrl}
-            alt={ad.adName || 'Ad creative'}
-            className="w-full h-full object-cover"
-            loading="eager"
-            crossOrigin="anonymous"
-            style={{ imageRendering: '-webkit-optimize-contrast' }}
-          />
-        ) : creative?.creativeType === 'carousel' && !mediaUrl ? (
-          // Carousel without media - show carousel icon
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-            <div className="bg-gray-100 rounded-full p-4 mb-2">
-              <LayoutGrid className="w-12 h-12 text-gray-400" />
-            </div>
-            <span className="text-xs text-gray-400">Carousel</span>
-          </div>
-        ) : creative?.creativeType === 'link' && !mediaUrl ? (
-          // Link without media - show link icon
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-            <div className="bg-gray-100 rounded-full p-4 mb-2">
-              <LinkIcon className="w-12 h-12 text-gray-400" />
-            </div>
-            <span className="text-xs text-gray-400">Link</span>
-          </div>
-        ) : creative?.creativeType === 'other' ? (
-          // Other type - show icon with thumbnail background
-          <div className="relative w-full h-full">
-            {mediaUrl && (
-              <img
-                src={mediaUrl}
-                alt={ad.adName || 'Ad creative'}
-                className="w-full h-full object-cover opacity-40"
-                loading="eager"
-                crossOrigin="anonymous"
-              />
-            )}
-            <div className="absolute inset-0 flex items-center justify-center">
-              
-            </div>
-          </div>
-        ) : mediaUrl ? (
-          // Any other type with media URL
-          <img
-            src={mediaUrl}
-            alt={ad.adName || 'Ad creative'}
-            className="w-full h-full object-cover"
-            loading="eager"
-            crossOrigin="anonymous"
-            style={{ imageRendering: '-webkit-optimize-contrast' }}
-          />
-        ) : (
-          // No media at all
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-            <div className="bg-gray-100 rounded-full p-4 mb-2">
-              <FileQuestion className="w-12 h-12 text-gray-400" />
-            </div>
-            <span className="text-xs text-gray-400">No Media</span>
-          </div>
-        )}
+        <AdCardMedia creative={creative} adName={ad.adName} />
 
         <span className="absolute bottom-2 left-2 bg-black/60 text-white text-[13px] px-2 py-1 rounded-md flex items-center gap-1">
           <typeInfo.icon className="w-4 h-4" />
