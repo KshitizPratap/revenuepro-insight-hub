@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown, Loader2, CalendarIcon } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -259,6 +259,7 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
   }
 
   const AdPreview =({ creative, mediaConfig, adName }: AdPreviewProps) => {
+    const [isIframeLoading, setIsIframeLoading] = useState(true);
     const ctaType = creative?.callToAction?.type;
     const ctaLink = creative?.objectStorySpec?.link_data?.link;
     const headline = creative?.headline;
@@ -277,6 +278,34 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
         return url;
       }
     };
+
+    const isIframe = mediaConfig.type === 'iframe';
+
+    useEffect(() => {
+      if (isIframe) {
+        setIsIframeLoading(true);
+        const timer = setTimeout(() => {
+          setIsIframeLoading(false);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }, []);
+
+    if (isIframe) {
+      return (
+        <div className="max-w-md mx-auto bg-white shadow-lg overflow-hidden rounded-lg">
+          {isIframeLoading && (
+            <div className="w-full aspect-[9/16] flex flex-col items-center justify-center bg-slate-100">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
+              <p className="text-sm text-slate-600">Loading ad preview...</p>
+            </div>
+          )}
+          <div className={isIframeLoading ? 'hidden' : 'w-full'}>
+            {renderAdModalMedia(mediaConfig, adName)}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="max-w-md mx-auto bg-white shadow-lg overflow-hidden rounded-lg">
@@ -460,15 +489,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
               </PopoverContent>
             </Popover>
         </div>
-
-        {isLoadingModalData && (
-          <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50 rounded-lg">
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <p className="text-sm text-slate-600">Loading ad data...</p>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr,450px] overflow-hidden -mt-px" style={{ maxHeight: 'calc(80vh - 120px)' }}>
           <div className="border-t overflow-y-auto scroll-thin bg-slate-100 px-8 py-6" style={{ maxHeight: 'calc(80vh - 120px)' }}>
