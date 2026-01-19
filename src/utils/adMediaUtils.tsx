@@ -159,11 +159,18 @@ export function getAdModalMedia(creative?: Creative | null): AdModalMediaConfig 
   return { type: 'none' };
 }
 
+function decodeHtmlEntities(html: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = html;
+  return textarea.value;
+}
+
 function extractIframeData(iframeHtml: string): { src?: string; width?: string; height?: string } {
   try {
-    const srcMatch = iframeHtml.match(/src=["']([^"']+)["']/);
-    const widthMatch = iframeHtml.match(/width=["']?(\d+)["']?/);
-    const heightMatch = iframeHtml.match(/height=["']?(\d+)["']?/);
+    const decodedHtml = decodeHtmlEntities(iframeHtml);
+    const srcMatch = decodedHtml.match(/src=["']([^"']+)["']/);
+    const widthMatch = decodedHtml.match(/width=["']?(\d+)["']?/);
+    const heightMatch = decodedHtml.match(/height=["']?(\d+)["']?/);
 
     const src = srcMatch ? decodeURIComponent(srcMatch[1]) : undefined;
     const width = widthMatch ? widthMatch[1] : undefined;
@@ -184,7 +191,8 @@ export function renderPreviewIframe(iframeHtml: string): {
   if (!iframeHtml) return null;
 
   try {
-    const iframeData = extractIframeData(iframeHtml);
+    const decodedHtml = decodeHtmlEntities(iframeHtml);
+    const iframeData = extractIframeData(decodedHtml);
 
     if (iframeData.src) {
       return {
@@ -195,12 +203,19 @@ export function renderPreviewIframe(iframeHtml: string): {
     }
 
     return {
-      dangerouslySetInnerHTML: { __html: iframeHtml },
+      dangerouslySetInnerHTML: { __html: decodedHtml },
     };
   } catch (error) {
-    return {
-      dangerouslySetInnerHTML: { __html: iframeHtml },
-    };
+    try {
+      const decodedHtml = decodeHtmlEntities(iframeHtml);
+      return {
+        dangerouslySetInnerHTML: { __html: decodedHtml },
+      };
+    } catch (decodeError) {
+      return {
+        dangerouslySetInnerHTML: { __html: iframeHtml },
+      };
+    }
   }
 }
 
