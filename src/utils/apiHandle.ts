@@ -26,7 +26,7 @@ const apiHandler = async (
         const userTimeZone = typeof Intl !== 'undefined' && Intl.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone : '';
         
         // Add LEADS_API_KEY header for specific endpoints
-        const leadsApiKeyHeaders = endPoint.includes('/process-lead-sheet') ? {
+        const leadsApiKeyHeaders = (endPoint.includes('/process-lead-sheet') || endPoint.includes('/hooks/create-lead')) ? {
             "LEADS_API_KEY": "407e72af81d701490db65daf1775224c64bb097fcb52d59e05720a252677d051"
         } : {};
         

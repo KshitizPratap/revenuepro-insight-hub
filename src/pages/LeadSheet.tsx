@@ -705,6 +705,27 @@ export const LeadSheet = () => {
     }
   }, [toast, period, customRange, selectedDate, selectedUserId, currentPage, pageSize, currentSorting, currentFilters, fetchPaginatedLeads]);
 
+  // Handler to refresh leads after adding a new one
+  const handleLeadAdded = async () => {
+    if (!selectedUserId) return;
+
+    const { startDate, endDate } =
+      period === "custom" && customRange
+        ? customRange
+        : getDateRange(selectedDate, period as PeriodType);
+
+    await fetchPaginatedLeads({
+      clientId: selectedUserId,
+      startDate,
+      endDate,
+      page: currentPage,
+      limit: pageSize,
+      sortBy: currentSorting.sortBy,
+      sortOrder: currentSorting.sortOrder,
+      ...currentFilters,
+    });
+  };
+
   // Check if it's the current week (only for weekly period)
   const isCurrentWeek = useMemo(() => {
     if (period !== 'weekly') return false;
@@ -783,6 +804,8 @@ export const LeadSheet = () => {
                   onRefresh={handleLeadSheetRefresh}
                   isRefreshing={isRefreshing}
                   isCurrentWeek={isCurrentWeek}
+                  clientId={selectedUserId}
+                  onLeadAdded={handleLeadAdded}
                 />
 
                 {/* No Results Message */}
