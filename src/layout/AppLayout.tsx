@@ -7,6 +7,7 @@ import useAuthStore from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useGhlClientStore } from "@/stores/ghlClientStore";
+import { LeadsCenterUpdateModal } from "@/components/LeadsCenterUpdateModal";
 
 export default function AppLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -45,6 +46,7 @@ export default function AppLayout() {
             </main>
           </ErrorBoundary>
         </div>
+        <LeadsCenterUpdateModal />
       </div>
   );
 }
