@@ -379,7 +379,7 @@ export const PerformanceBoard = () => {
     return filters;
   }, [appliedFilters]); // Removed availableZipCodes and availableServiceTypes from dependencies
 
-  const { data, isFetching, refetch } = useQuery<PerformanceRow[]>({
+  const { data, isFetching, isLoading, refetch } = useQuery<PerformanceRow[]>({
     queryKey: [
       "ad-performance-board",
       clientId,
@@ -445,7 +445,7 @@ export const PerformanceBoard = () => {
   });
 
   // Separate query for ad grid view - uses dedicated API for grid data
-  const { data: adGridData } = useQuery<AdGridAd[]>({
+  const { data: adGridData, isLoading: isAdGridLoading } = useQuery<AdGridAd[]>({
     queryKey: [
       "ad-grid-data",
       clientId,
@@ -854,8 +854,16 @@ export const PerformanceBoard = () => {
     setColumnOrder(uniqueIds);
   };
 
+  const isInitialLoading = isLoading || isAdGridLoading;
+
   return (
-    <div className="px-6 pt-6 pb-10">
+    <div className="px-6 pt-6 pb-10 relative">
+      {isInitialLoading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-3" />
+          <p className="text-sm font-medium text-slate-700">Loading Ad Previews...</p>
+        </div>
+      )}
       <div className="w-[90%] mx-auto space-y-8">
         <PageHeader
           icon={LayoutPanelTop}
