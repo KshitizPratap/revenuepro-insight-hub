@@ -20,6 +20,7 @@ import { doPOST } from "@/utils/HttpUtils";
 import { Loader2, FileText, Table } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { getStatusInfo } from "@/utils/leads/leadProcessing";
 
 interface AddLeadsModalProps {
   isOpen: boolean;
@@ -425,14 +426,26 @@ export const AddLeadsModal: React.FC<AddLeadsModalProps> = ({
                   onValueChange={(value) => handleSelectChange("status", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Select status">
+                      {formData.status && (
+                        <span className={`px-2 py-1 rounded text-xs border ${getStatusInfo(formData.status).color}`}>
+                          {getStatusInfo(formData.status).label}
+                        </span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {LEAD_STATUSES.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
+                    {LEAD_STATUSES.map((status) => {
+                      const statusInfo = getStatusInfo(status.value);
+                      return (
+                        <SelectItem key={status.value} value={status.value} className="text-sm">
+                          <span className="inline-flex items-center gap-2">
+                            <div className={`w-2 h-2 ${statusInfo.dotColor} rounded-full`}></div>
+                            {statusInfo.label}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
