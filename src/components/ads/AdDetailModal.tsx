@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Video, Image as ImageIcon, LayoutGrid, Link as LinkIcon, ChevronUp, ChevronDown, Loader2, CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronUp, ChevronDown, Loader2, CalendarIcon } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,6 +14,7 @@ import { fetchAdPerformanceBoard } from '@/service/adPerformanceBoardService';
 import { useUserContext } from '@/utils/UserContext';
 import { useUserStore } from '@/stores/userStore';
 import { format } from 'date-fns';
+import { getMediaTypeLabel, getAdModalMedia, renderAdModalMedia } from '@/utils/adMediaUtils';
 
 interface AdDetailModalProps {
   open: boolean;
@@ -30,26 +31,30 @@ interface AdDetailModalProps {
     creative?: {
       id: string;
       name?: string;
-      creativeType?: 'image' | 'video' | 'carousel' | 'link' | 'other';
+      mediaType?: 'IMAGE' | 'VIDEO' | 'MIXED';
+      creativeMode?: 'STATIC' | 'STATIC_CAROUSEL' | 'DYNAMIC_ASSET_FEED' | 'DYNAMIC_CATALOG';
       thumbnailUrl?: string;
-      imageUrl?: string;
-      imageHash?: string;
-      videoId?: string;
-      videos?: Array<{
-        id: string;
-        url: string;
-        thumbnailUrl?: string;
-        duration?: number;
-      }>;
+      imageHashes?: string[];
+      imageUrls?: string[];
+      videoIds?: string[];
+      videoUrls?: string[];
+      previewIframe?: string[];
       primary_text?: string;
       headline?: string;
+      description?: string;
+      body?: string;
+      childAttachments?: Array<{
+        name?: string;
+        description?: string;
+        imageUrl?: string;
+        imageHash?: string;
+        link?: string;
+        videoId?: string;
+      }>;
       callToAction?: {
         type?: string;
         value?: any;
       };
-      description?: string;
-      body?: string;
-      childAttachments?: any[];
       objectStorySpec?: {
         page_id?: string;
         link_data?: {
@@ -60,7 +65,6 @@ interface AdDetailModalProps {
         };
       };
     };
-    // Metrics
     fb_impressions?: number;
     fb_clicks?: number;
     fb_ctr?: number;
@@ -75,7 +79,6 @@ interface AdDetailModalProps {
     fb_reach?: number;
     fb_video_continuous_2_sec_watched?: number;
     optimizationGoal?: string;
-    // New metrics from API
     revenue?: number;
     costPerEstimateSet?: number | null;
     numberOfEstimateSets?: number;
@@ -103,14 +106,12 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
   const { user } = useUserContext();
   const { selectedUserId } = useUserStore();
 
-  // Get clientId from props, or fall back to selectedUserId or user._id
   const clientId = clientIdProp || selectedUserId || (user as any)?._id;
 
   const [isPerformanceOpen, setIsPerformanceOpen] = useState(true);
   const [isEfficiencyOpen, setIsEfficiencyOpen] = useState(true);
   const [isInteractionsOpen, setIsInteractionsOpen] = useState(false);
 
-  // Modal-specific date filter state (independent from outer filters)
   const [modalStartDate, setModalStartDate] = useState<string>(startDate || '');
   const [modalEndDate, setModalEndDate] = useState<string>(endDate || '');
   const [customStart, setCustomStart] = useState<Date>(startDate ? new Date(startDate) : new Date());
@@ -122,7 +123,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
 
   const handleStartDateChange = (date: Date | undefined) => {
     if (date) {
-      // update temporary pick only; do not apply until user clicks Apply
       setCustomStart(date);
       setStartMonth(date);
     }
@@ -132,7 +132,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
     if (date) {
       const today = new Date();
       const selected = date > today ? today : date;
-      // update temporary pick only; do not apply until user clicks Apply
       setCustomEnd(selected);
       setEndMonth(selected);
     }
@@ -149,21 +148,12 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
     }
   };
 
-  // Fetch ad data with modal's date filter
   const { data: modalAdData, isLoading: isLoadingModalData } = useQuery({
     queryKey: ['ad-detail-modal', ad.adName, modalStartDate, modalEndDate, clientId],
     queryFn: async () => {
       if (!modalStartDate || !modalEndDate || !clientId) {
-        console.log('Missing required params:', { modalStartDate, modalEndDate, clientId });
         return null;
       }
-
-      console.log('Fetching ad detail with params:', {
-        clientId,
-        startDate: modalStartDate,
-        endDate: modalEndDate,
-        adName: ad.adName,
-      });
 
       const response = await fetchAdPerformanceBoard({
         clientId,
@@ -174,11 +164,9 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
           adName: ad.adName,
         },
         columns: {
-          // Identifiers
           adName: true,
           campaignName: true,
           adSetName: true,
-          // Performance Metrics (Top Box)
           revenue: true,
           costPerEstimateSet: true,
           numberOfEstimateSets: true,
@@ -186,7 +174,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
           averageJobSize: true,
           costPerLead: true,
           numberOfLeads: true,
-          // Efficiency Metrics (Second Box)
           conversion_rate: true,
           thumbstop_rate: true,
           see_more_rate: true,
@@ -195,12 +182,10 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
           fb_cpm: true,
           resultRate: true,
           fb_frequency: true,
-          // Interactions (Third Box)
           fb_post_comments: true,
           fb_post_reactions: true,
           fb_post_shares: true,
           fb_post_saves: true,
-          // Additional metrics for display
           fb_spend: true,
           fb_impressions: true,
           fb_clicks: true,
@@ -216,94 +201,31 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
         },
       });
 
-      console.log('API Response:', response);
-
       if (response.error) {
-        console.error('API Error:', response.error, response.message);
         return null;
       }
 
       if (!response.data || response.data.length === 0) {
-        console.log('No data returned for ad:', ad.adName);
         return null;
       }
 
-      console.log('Successfully fetched modal data:', response.data[0]);
       return response.data[0];
     },
     enabled: Boolean(modalStartDate && modalEndDate && clientId && open),
     staleTime: 60 * 1000,
   });
 
-  // Use modal data if available, otherwise fall back to prop data
-  const displayAd = modalAdData || ad;
+  const displayAd = useMemo(() => modalAdData || ad, [modalAdData, ad]);
 
-  console.log('Display Ad Data:', {
-    modalAdData,
-    ad,
-    displayAd,
-    isUsingModalData: !!modalAdData,
-  });
+  const effectiveCreative = useMemo(() => {
+    return (modalAdData as any)?.data?.[0]?.creative || creative;
+  }, [modalAdData, creative]);
 
-  // Format date range
-  const formatDateRange = () => {
-    if (!startDate || !endDate) return 'Select date range';
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    };
-    
-    return `Since ${formatDate(start)}: ${formatDate(start)} - ${formatDate(end)}`;
-  };
-
-  // Get creative type info
-  const getCreativeTypeInfo = () => {
-    if (!creative) return { icon: ImageIcon, label: 'No Creative', color: 'bg-gray-500' };
-    
-    switch (creative.creativeType) {
-      case 'video':
-        return { icon: Video, label: 'Video', color: 'bg-blue-500' };
-      case 'carousel':
-        return { icon: LayoutGrid, label: 'Carousel', color: 'bg-purple-500' };
-      case 'link':
-        return { icon: LinkIcon, label: 'Link', color: 'bg-green-500' };
-      case 'image':
-        return { icon: ImageIcon, label: 'Image', color: 'bg-orange-500' };
-      default:
-        return { icon: ImageIcon, label: 'Other', color: 'bg-gray-500' };
-    }
-  };
-
-  const typeInfo = getCreativeTypeInfo();
+  const typeInfo = useMemo(() => getMediaTypeLabel(effectiveCreative), [effectiveCreative]);
   const CreativeIcon = typeInfo.icon;
 
-  // Get media URL
-  const getMediaUrl = () => {
-    if (!creative) return null;
-    
-    if (creative.creativeType === 'image' && creative.imageUrl) {
-      return creative.imageUrl;
-    }
-    
-    return creative.thumbnailUrl || creative.videos?.[0]?.thumbnailUrl || null;
-  };
+  const mediaConfig = useMemo(() => getAdModalMedia(effectiveCreative), [effectiveCreative]);
 
-  const mediaUrl = getMediaUrl();
-
-  // Get video URL for video ads
-  const getVideoUrl = () => {
-    if (!creative || creative.creativeType !== 'video') return null;
-    if (!creative.videos || creative.videos.length === 0) return null;
-    return creative.videos[0]?.url || creative.videoId || null;
-  };
-
-  const videoUrl = getVideoUrl();
-  const isVideo = creative?.creativeType === 'video';
-
-  // Format helpers
   const formatCurrency = (value?: number | null | string) => {
     if (value === null || value === undefined) return '—';
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
@@ -332,18 +254,19 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden p-0">
-        {/* Header */}
-        <div className="border-b border-slate-200 p-4 space-y-3">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden p-0 gap-0">
+        {/* 1. Header */}
+        <div className="px-4 pt-4 pb-0">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-slate-900">
               {displayAd.adName || 'Ad Details'}
             </DialogTitle>
             <p className="text-sm text-slate-500">Ad name</p>
           </DialogHeader>
+        </div>
 
-          {/* Independent Date Filter */}
-          <div>
+        {/* 2. Calendar bar with full-width borders */}
+        <div className="border-t border-b border-slate-200 px-4 py-3">
             <Popover open={openPicker} onOpenChange={setOpenPicker}>
               <PopoverTrigger asChild>
                 <Button
@@ -421,7 +344,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      // revert temporary picks to currently applied modal dates
                       setCustomStart(modalStartDate ? new Date(modalStartDate) : new Date());
                       setStartMonth(modalStartDate ? new Date(modalStartDate) : new Date());
                       setCustomEnd(modalEndDate ? new Date(modalEndDate) : new Date());
@@ -434,7 +356,6 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                   </Button>
                   <Button
                     onClick={() => {
-                      // apply temporary picks to modal filters
                       setModalStartDate(format(customStart, 'yyyy-MM-dd'));
                       setModalEndDate(format(customEnd, 'yyyy-MM-dd'));
                       setOpenPicker(false);
@@ -446,10 +367,8 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                 </div>
               </PopoverContent>
             </Popover>
-          </div>
         </div>
 
-        {/* Loader Overlay */}
         {isLoadingModalData && (
           <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50 rounded-lg">
             <div className="flex flex-col items-center gap-2">
@@ -459,13 +378,9 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
           </div>
         )}
 
-        {/* Content */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] overflow-hidden" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-          {/* Left Column - Facebook-like Preview */}
-          <div className="p-4 border-r border-slate-200 flex flex-col overflow-y-auto bg-slate-50" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-            {/* Facebook-like Post Preview */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-4">
-              {/* Post Header (Meta branding) */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] overflow-hidden -mt-px" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+          <div className="border-t overflow-y-auto scroll-thin bg-slate-50 px-4" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+            <div className="shadow-sm overflow-hidden">
               <div className="px-4 pt-3 pb-2 flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
                   <span className="text-white text-xs font-bold">f</span>
@@ -473,45 +388,17 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-slate-900">Meta</p>
                   <p className="text-xs text-slate-500">Sponsored</p>
-                </div>
+                  </div>
               </div>
 
-              {/* Primary Text - Facebook post style */}
               {creative?.primary_text && (
                 <div className="px-4 pb-3">
                   <p className="text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">{creative.primary_text}</p>
                 </div>
               )}
 
-              {/* Media Display - Below text like Facebook */}
-              {mediaUrl || videoUrl ? (
-                <div className="w-full bg-slate-100">
-                  {isVideo && videoUrl ? (
-                    <video
-                      src={videoUrl}
-                      className="w-full object-cover"
-                      controls
-                      playsInline
-                      muted
-                      crossOrigin="anonymous"
-                    />
-                  ) : mediaUrl ? (
-                    <img
-                      src={mediaUrl}
-                      alt={displayAd.adName || 'Ad creative'}
-                      className="w-full object-cover"
-                      loading="eager"
-                      crossOrigin="anonymous"
-                    />
-                  ) : null}
-                </div>
-              ) : (
-                <div className="w-full aspect-video flex items-center justify-center bg-slate-100">
-                  <span className="text-sm text-slate-400">No media content</span>
-                </div>
-              )}
+              {renderAdModalMedia(mediaConfig, displayAd.adName)}
 
-              {/* Optional: Headline as link preview (if available) */}
               {creative?.headline && creative?.objectStorySpec?.link_data?.link && (
                 <div className="px-4 py-3 border-t border-slate-200">
                   <a
@@ -526,16 +413,15 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                 </div>
               )}
             </div>
-
-            {/* Ad Details at Bottom */}
-            <div className="mt-auto pt-4 border-t border-slate-200">
+            
+            <div className="pt-4 border-t border-slate-200">
               <h3 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Ad Details</h3>
               <div className="space-y-3">
                 {displayAd.adName && (
                   <div className="flex items-start justify-between py-2">
                     <span className="text-xs text-slate-500">Ad Name</span>
                     <span className="text-sm font-medium text-slate-900 text-right max-w-[60%]">{displayAd.adName}</span>
-                  </div>
+          </div>
                 )}
                 
                 {displayAd.adSetName && (
@@ -549,10 +435,10 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                   <div className="flex items-start justify-between py-2">
                     <span className="text-xs text-slate-500">Campaign</span>
                     <span className="text-sm font-medium text-slate-900 text-right max-w-[60%]">{displayAd.campaignName}</span>
-                  </div>
+                    </div>
                 )}
-
-                {creative?.id && (
+                    
+                        {creative?.id && (
                   <div className="flex items-start justify-between py-2">
                     <span className="text-xs text-slate-500">Creative ID</span>
                     <span className="text-sm font-medium text-slate-900 text-right max-w-[60%]">{creative.id}</span>
@@ -564,8 +450,8 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                   <div className="flex items-center gap-1.5">
                     <CreativeIcon className="w-4 h-4 text-slate-600" />
                     <span className="text-sm font-medium text-slate-900">{typeInfo.label}</span>
-                  </div>
-                </div>
+                      </div>
+                    </div>
 
                 {displayAd.optimizationGoal && (
                   <div className="flex items-start justify-between py-2">
@@ -573,8 +459,8 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                     <span className="text-sm font-medium text-slate-900 text-right max-w-[60%]">
                       {displayAd.optimizationGoal.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                     </span>
-                  </div>
-                )}
+                      </div>
+                    )}
 
                 {creative?.callToAction?.type && (
                   <div className="flex items-start justify-between py-2">
@@ -582,37 +468,35 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                     <span className="text-sm font-medium text-slate-900 text-right max-w-[60%]">
                       {creative.callToAction.type.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                     </span>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {creative?.objectStorySpec?.link_data?.link && (
+                    {creative?.objectStorySpec?.link_data?.link && (
                   <div className="flex items-start justify-between py-2">
                     <span className="text-xs text-slate-500">Landing Page</span>
-                    <a 
-                      href={creative.objectStorySpec.link_data.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                        <a 
+                          href={creative.objectStorySpec.link_data.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
                       className="text-sm font-medium text-blue-600 hover:underline text-right max-w-[60%] truncate"
-                      title={creative.objectStorySpec.link_data.link}
-                    >
-                      {new URL(creative.objectStorySpec.link_data.link).hostname}
-                    </a>
-                  </div>
-                )}
+                          title={creative.objectStorySpec.link_data.link}
+                        >
+                          {new URL(creative.objectStorySpec.link_data.link).hostname}
+                        </a>
+                      </div>
+                    )}
 
-                <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center justify-between py-2">
                   <span className="text-xs text-slate-500">Platform</span>
                   <span className="text-sm font-medium text-slate-900">Meta</span>
-                </div>
-              </div>
-            </div>
-          </div>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
 
-          {/* Right Column - Metrics */}
-          <div className="p-4 space-y-3 bg-slate-50 overflow-y-auto pb-16 pr-4" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-            {/* Performance Section (Top Box) */}
-            <Collapsible open={isPerformanceOpen} onOpenChange={setIsPerformanceOpen}>
-              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+          <div className="border overflow-y-auto pb-16 scroll-thin" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+            <Collapsible open={isPerformanceOpen} onOpenChange={setIsPerformanceOpen} className="[&+&]:mt-0">
+              <div className="bg-white border border-slate-200 overflow-hidden">
                 <CollapsibleTrigger className="w-full">
                   <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                     <span className="text-sm font-medium text-slate-700">Performance</span>
@@ -656,9 +540,8 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
               </div>
             </Collapsible>
 
-            {/* Efficiency Section (Second Box) */}
-            <Collapsible open={isEfficiencyOpen} onOpenChange={setIsEfficiencyOpen}>
-              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <Collapsible open={isEfficiencyOpen} onOpenChange={setIsEfficiencyOpen} className="[&+&]:mt-0 -mt-px">
+              <div className="bg-white border border-slate-200 overflow-hidden">
                 <CollapsibleTrigger className="w-full">
                   <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                     <span className="text-sm font-medium text-slate-700">Efficiency</span>
@@ -679,14 +562,14 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
                       <div className="flex items-center justify-between py-2">
                         <span className="text-xs text-slate-500">See More Rate</span>
                         <p className="text-sm font-semibold text-slate-900">{formatPercent(displayAd.see_more_rate)}</p>
-                      </div>
+                    </div>
                       <div className="flex items-start justify-between py-2">
                         <div className="flex-1 pr-2">
                           <span className="text-xs text-slate-500 block">Hold rate</span>
                           <span className="text-xs text-slate-400 italic">(ThruPlays ÷ Impressions. Did they stay? This tells you how well the story or creative kept attention beyond the initial hook.)</span>
-                        </div>
+                  </div>
                         <p className="text-sm font-semibold text-slate-900 ml-2 flex-shrink-0">{formatPercent(displayAd.holdRate)}</p>
-                      </div>
+              </div>
                       <div className="flex items-center justify-between py-2">
                         <span className="text-xs text-slate-500">Cost per Link Click</span>
                         <p className="text-sm font-semibold text-slate-900">{formatCurrency(displayAd.costPerLinkClick)}</p>
@@ -712,9 +595,8 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
               </div>
             </Collapsible>
 
-            {/* Interactions Section (Third Box) */}
-            <Collapsible open={isInteractionsOpen} onOpenChange={setIsInteractionsOpen}>
-              <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <Collapsible open={isInteractionsOpen} onOpenChange={setIsInteractionsOpen} className="[&+&]:mt-0 -mt-px">
+              <div className="bg-white border border-slate-200 overflow-hidden">
                 <CollapsibleTrigger className="w-full">
                   <div className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                     <span className="text-sm font-medium text-slate-700">Interactions</span>
@@ -751,27 +633,3 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
     </Dialog>
   );
 }
-
-// Score bar component with color-coded progress
-const ScoreBar = ({ label, score }: { label: string; score: number }) => {
-  const getColor = (score: number) => {
-    if (score >= 70) return 'bg-green-500';
-    if (score >= 40) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
-  const color = getColor(score);
-
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-slate-600 w-24 flex-shrink-0">{label}</span>
-      <div className="flex-1 bg-slate-200 rounded-full h-1.5">
-        <div
-          className={`${color} h-1.5 rounded-full transition-all duration-300`}
-          style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
-        />
-      </div>
-      <span className="text-xs font-semibold text-slate-900 w-8 text-right">{score}</span>
-    </div>
-  );
-};
