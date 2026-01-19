@@ -37,26 +37,30 @@ export interface AdGridAd {
     creative?: {
       id: string;
       name?: string;
-      creativeType?: 'image' | 'video' | 'carousel' | 'link' | 'other';
+      mediaType?: 'IMAGE' | 'VIDEO' | 'MIXED';
+      creativeMode?: 'STATIC' | 'STATIC_CAROUSEL' | 'DYNAMIC_ASSET_FEED' | 'DYNAMIC_CATALOG';
       thumbnailUrl?: string;
-      imageUrl?: string;
-      imageHash?: string;
-      videoId?: string;
-      videos?: Array<{
-        id: string;
-        url: string;
-        thumbnailUrl?: string;
-        duration?: number;
-      }>;
+      imageHashes?: string[];
+      imageUrls?: string[];
+      videoIds?: string[];
+      videoUrls?: string[];
+      previewIframe?: string[];
       primary_text?: string; // API snake_case format
       headline?: string;
+      description?: string;
+      body?: string;
+      childAttachments?: Array<{
+        name?: string;
+        description?: string;
+        imageUrl?: string;
+        imageHash?: string;
+        link?: string;
+        videoId?: string;
+      }>;
       callToAction?: {
         type?: string;
         value?: any;
       };
-      description?: string;
-      body?: string;
-      childAttachments?: any[];
     };
 }
 
