@@ -252,9 +252,101 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
     return `${numValue.toFixed(2)}%`;
   };
 
+  interface AdPreviewProps {
+    creative: typeof ad.creative;
+    mediaConfig: ReturnType<typeof getAdModalMedia>;
+    adName?: string;
+  }
+
+  const AdPreview =({ creative, mediaConfig, adName }: AdPreviewProps) => {
+    const ctaType = creative?.callToAction?.type;
+    const ctaLink = creative?.objectStorySpec?.link_data?.link;
+    const headline = creative?.headline;
+
+    const compressedText = creative?.primary_text
+      ? creative.primary_text
+          .replace(/\n+/g, ' ')
+          .replace(/[ \t]{2,}/g, ' ')
+          .trim()
+      : null;
+
+    const getHostname = (url: string) => {
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return url;
+      }
+    };
+
+    return (
+      <div className="max-w-md mx-auto bg-white shadow-lg overflow-hidden rounded-lg">
+        <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+            <span className="text-white text-xs font-bold">f</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-slate-900">Meta</p>
+            <p className="text-xs text-slate-500">Sponsored</p>
+          </div>
+        </div>
+
+        {compressedText && (
+          <div className="px-4 pb-3">
+            <p className="text-sm text-slate-900 leading-relaxed">{compressedText}</p>
+          </div>
+        )}
+
+        {renderAdModalMedia(mediaConfig, adName)}
+
+        {headline && ctaLink && (
+          <div className="px-4 py-3 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-500 mb-1">{getHostname(ctaLink)}</p>
+                <p className="text-sm font-semibold text-slate-900">{headline}</p>
+              </div>
+              {ctaType && (
+                <button className="ml-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                  {ctaType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {ctaType && (
+          <div className="px-4 py-3 border-t border-slate-200 bg-slate-50">
+            <div className="flex items-center justify-between">
+              {ctaLink ? (
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-500 mb-1">{getHostname(ctaLink)}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {headline || 'Get Your Free Estimate Today!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">Get Your Free Estimate Today!</p>
+                </div>
+              )}
+              <a
+                href={ctaLink || '#'}
+                target={ctaLink ? "_blank" : undefined}
+                rel={ctaLink ? "noopener noreferrer" : undefined}
+                className="ml-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+              >
+                {ctaType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden p-0 gap-0">
+      <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden p-0 gap-0">
         {/* 1. Header */}
         <div className="px-4 pt-4 pb-0">
           <DialogHeader>
@@ -378,41 +470,13 @@ export function AdDetailModal({ open, onClose, ad, startDate, endDate, clientId:
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] overflow-hidden -mt-px" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-          <div className="border-t overflow-y-auto scroll-thin bg-slate-50 px-4" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-            <div className="shadow-sm overflow-hidden">
-              <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">f</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">Meta</p>
-                  <p className="text-xs text-slate-500">Sponsored</p>
-                  </div>
-              </div>
-
-              {creative?.primary_text && (
-                <div className="px-4 pb-3">
-                  <p className="text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">{creative.primary_text}</p>
-                </div>
-              )}
-
-              {renderAdModalMedia(mediaConfig, displayAd.adName)}
-
-              {creative?.headline && creative?.objectStorySpec?.link_data?.link && (
-                <div className="px-4 py-3 border-t border-slate-200">
-                  <a
-                    href={creative.objectStorySpec.link_data.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block hover:bg-slate-50 -mx-4 px-4 py-2 rounded transition-colors"
-                  >
-                    <p className="text-xs text-slate-500 uppercase mb-1">{new URL(creative.objectStorySpec.link_data.link).hostname}</p>
-                    <p className="text-sm font-semibold text-slate-900">{creative.headline}</p>
-                  </a>
-                </div>
-              )}
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr,450px] overflow-hidden -mt-px" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+          <div className="border-t overflow-y-auto scroll-thin bg-slate-100 px-8 py-6" style={{ maxHeight: 'calc(80vh - 120px)' }}>
+            <AdPreview 
+              creative={effectiveCreative} 
+              mediaConfig={mediaConfig} 
+              adName={displayAd.adName} 
+            />
             
             <div className="pt-4 border-t border-slate-200">
               <h3 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Ad Details</h3>
