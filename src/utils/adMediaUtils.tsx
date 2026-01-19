@@ -405,14 +405,26 @@ interface AdCardMediaProps {
 
 export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }: AdCardMediaProps) {
   const isVideo = React.useMemo(() => creative?.mediaType === 'VIDEO', [creative?.mediaType]);
-  const videoUrl = React.useMemo(() => {
-    return creative?.videoUrls && creative.videoUrls.length > 0 ? creative.videoUrls[0] : null;
-  }, [creative?.videoUrls]);
-  const imageUrl = React.useMemo(() => getAdCardImageUrl(creative), [creative]);
-
-  const handleVideoError = React.useCallback((e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error('[AdCardMedia] Video failed to load:', videoUrl);
-  }, [videoUrl]);
+  const isDynamicVideo = React.useMemo(() => {
+    return creative?.creativeMode === 'DYNAMIC_ASSET_FEED' && creative?.mediaType === 'VIDEO';
+  }, [creative?.creativeMode, creative?.mediaType]);
+  
+  const imageUrl = React.useMemo(() => {
+    if (!creative) return null;
+    
+    if (isDynamicVideo) {
+      return null;
+    }
+    
+    if (isVideo) {
+      if (creative.imageUrls && creative.imageUrls.length > 0) {
+        return creative.imageUrls[0];
+      }
+      return null;
+    }
+    
+    return getAdCardImageUrl(creative);
+  }, [creative, isVideo, isDynamicVideo]);
 
   const handleImageError = React.useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('[AdCardMedia] Image/Thumbnail failed to load:', imageUrl);
@@ -429,30 +441,15 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
     );
   }
 
-  if (isVideo && videoUrl) {
+  if (isDynamicVideo) {
     return (
-      <video
-        src={videoUrl}
-        className="w-full h-full object-cover"
-        preload="metadata"
-        playsInline
-        muted
-        crossOrigin="anonymous"
-        onError={handleVideoError}
-      />
-    );
-  }
-
-  if (isVideo && !videoUrl && imageUrl) {
-    return (
-      <img
-        src={imageUrl}
-        alt={adName || 'Ad creative'}
-        className="w-full h-full object-cover"
-        loading="eager"
-        crossOrigin="anonymous"
-        onError={handleImageError}
-      />
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+        <div className="bg-white rounded-lg p-6 shadow-md">
+          <Video className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-900 text-center mb-2">Facebook Ad Preview</p>
+          <p className="text-xs text-gray-500 text-center">Click to view ad preview</p>
+        </div>
+      </div>
     );
   }
 
@@ -484,9 +481,8 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
 
   if (prevCreative?.id !== nextCreative?.id) return false;
   if (prevCreative?.mediaType !== nextCreative?.mediaType) return false;
-  if (prevCreative?.videoUrls?.[0] !== nextCreative?.videoUrls?.[0]) return false;
+  if (prevCreative?.creativeMode !== nextCreative?.creativeMode) return false;
   if (prevCreative?.imageUrls?.[0] !== nextCreative?.imageUrls?.[0]) return false;
-  if (prevCreative?.thumbnailUrl !== nextCreative?.thumbnailUrl) return false;
   if (prevProps.adName !== nextProps.adName) return false;
 
   return true;

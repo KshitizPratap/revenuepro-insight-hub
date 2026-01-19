@@ -15,7 +15,7 @@ const DONE_UNTIL_KEY = "leadsCenterUpdateModalDoneUntil";
 const TARGET_DAYS = [5, 6, 0]; // Friday (5), Saturday (6), Sunday (0)
 
 export function LeadsCenterUpdateModal() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const checkAndShowModal = () => {
