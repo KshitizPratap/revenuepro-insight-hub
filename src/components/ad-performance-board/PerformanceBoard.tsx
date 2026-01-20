@@ -37,7 +37,25 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/common-ui/PageHeader";
 import { AdGridView } from "@/components/ads/AdGridView";
 
-const STORAGE_KEY = "ad-performance-board:v1";
+// Bump the storage key version to reset saved column/layout prefs after deploy
+const STORAGE_KEY = "ad-performance-board:v2";
+
+// Column width configuration (adjust as needed)
+const MIN_COLUMN_WIDTH = 160;
+const MAX_COLUMN_WIDTH = 320;
+const DEFAULT_COLUMN_WIDTH = 220;
+const DIMENSION_COLUMN_WIDTH = 260;
+const COLUMN_WIDTHS: Record<string, number> = {
+  campaignName: DIMENSION_COLUMN_WIDTH,
+  adSetName: DIMENSION_COLUMN_WIDTH,
+  adName: DIMENSION_COLUMN_WIDTH,
+  zipCode: 200,
+  service: 200,
+};
+
+const getColumnWidth = (columnId: string) => {
+  return COLUMN_WIDTHS[columnId] ?? DEFAULT_COLUMN_WIDTH;
+};
 
 interface SortRule {
   columnId: string;
@@ -1008,10 +1026,9 @@ export const PerformanceBoard = () => {
                         onDragOver={handleDragOver(column.id)}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop(column.id)}
-                        className={`group px-3 py-2 text-left text-sm font-semibold tracking-wide border-r border-slate-200 last:border-r-0 relative whitespace-nowrap transition-all duration-150 ${
+                        className={`group px-3 py-2 text-left text-sm font-semibold tracking-wide border-r border-slate-200 last:border-r-0 relative whitespace-nowrap transition-all duration-150 overflow-hidden ${
                           categoryColors ? `${!isFrozen ? categoryColors.bg : ""} ${categoryColors.text}` : "text-slate-700"
-                        } ${isFrozen ? "sticky z-40" : ""} ${
-                          !isDimension && isBeingDragged ? "opacity-50 scale-95 cursor-grabbing" : !isDimension ? "cursor-grab hover:bg-slate-100" : ""
+                        } ${isFrozen ? "sticky z-40" : ""} ${ !isDimension && isBeingDragged ? "opacity-50 scale-95 cursor-grabbing" : !isDimension ? "cursor-grab hover:bg-slate-100" : ""
                         } ${
                           isDragOver && !isDropBlocked ? "bg-blue-50 border-blue-300" : ""
                         } ${
@@ -1020,9 +1037,9 @@ export const PerformanceBoard = () => {
                           isDimension ? "bg-purple-50/30 border-l-2 border-l-purple-400" : ""
                         }`}
                         style={{
-                          minWidth: "250px",
-                          width: "250px",
-                          maxWidth: (isZipCode || isService) ? "250px" : undefined,
+                          minWidth: `${Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, getColumnWidth(column.id)))}px`,
+                          width: `${Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, getColumnWidth(column.id)))}px`,
+                          maxWidth: `${Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, getColumnWidth(column.id)))}px`,
                           top: 0,
                           left: isFrozen ? `${leftOffset}px` : undefined,
                           backgroundColor: isDragOver && isDropBlocked
@@ -1071,7 +1088,7 @@ export const PerformanceBoard = () => {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div 
-                                  className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity max-w-full"
+                                  className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity max-w-full overflow-hidden"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (column.sortable) {
@@ -1095,7 +1112,7 @@ export const PerformanceBoard = () => {
                                       <GripVertical className="h-4 w-4 text-slate-500" />
                                     </span>
                                   )}
-                                  <span className="text-sm leading-tight whitespace-nowrap truncate max-w-[220px]">
+                                  <span className="text-sm leading-tight whitespace-nowrap truncate" title={column.label}>
                                     {column.label}
                                   </span>
                                   {column.sortable && (
@@ -1197,6 +1214,10 @@ export const PerformanceBoard = () => {
                         const isFrozen = frozenColumns.includes(column.id);
                         const frozenIndex = frozenColumns.indexOf(column.id);
                         const leftOffset = isFrozen ? frozenIndex * 250 : 0;
+                        const colWidthPx = Math.max(
+                          MIN_COLUMN_WIDTH,
+                          Math.min(MAX_COLUMN_WIDTH, getColumnWidth(column.id))
+                        );
                         const dimensionIds = ["campaignName", "adSetName", "adName"];
                         const isDimension = dimensionIds.includes(column.id);
                         const isColumnBlocked = dragOverColumnId === column.id && isDropBlocked;
@@ -1204,13 +1225,13 @@ export const PerformanceBoard = () => {
                         return (
                           <td
                             key={column.id}
-                            className={`py-2 pr-3 pl-6 text-sm border-r border-slate-100 last:border-r-0 overflow-hidden relative ${
+                          className={`py-2 pr-3 pl-6 text-sm border-r border-slate-100 last:border-r-0 overflow-hidden relative ${
                               categoryColors && !isFrozen ? categoryColors.cellBg : ""
                             } ${isFrozen ? "sticky z-20" : ""}`}
                             style={{
-                              minWidth: "250px",
-                              width: "250px",
-                              maxWidth: (isZipCode || isService) ? "250px" : undefined,
+                            minWidth: `${colWidthPx}px`,
+                            width: `${colWidthPx}px`,
+                            maxWidth: `${colWidthPx}px`,
                               left: isFrozen ? `${leftOffset}px` : undefined,
                               backgroundColor: isColumnBlocked
                                 ? "rgba(254, 226, 226, 0.5)"
@@ -1288,9 +1309,9 @@ export const PerformanceBoard = () => {
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <span className="whitespace-nowrap truncate block cursor-help">
-                                      {formatCellValue(column, cellValue)}
-                                    </span>
+                                  <span className="whitespace-nowrap truncate block cursor-help">
+                                    {formatCellValue(column, cellValue)}
+                                  </span>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p className="max-w-xs">{String(formatCellValue(column, cellValue))}</p>
@@ -1317,6 +1338,10 @@ export const PerformanceBoard = () => {
                       const leftOffset = isFrozen ? frozenIndex * 250 : 0;
                       const dimensionIds = ["campaignName", "adSetName", "adName"];
                       const isColumnBlocked = dragOverColumnId === column.id && isDropBlocked;
+                      const colWidthPx = Math.max(
+                        MIN_COLUMN_WIDTH,
+                        Math.min(MAX_COLUMN_WIDTH, getColumnWidth(column.id))
+                      );
                       
                       return (
                         <td
@@ -1327,9 +1352,9 @@ export const PerformanceBoard = () => {
                             isColumnBlocked ? "bg-red-100" : ""
                           }`}
                           style={{
-                            minWidth: "250px",
-                            width: "250px",
-                            maxWidth: (isZipCode || isService) ? "250px" : undefined,
+                            minWidth: `${colWidthPx}px`,
+                            width: `${colWidthPx}px`,
+                            maxWidth: `${colWidthPx}px`,
                             bottom: 0,
                             left: isFrozen ? `${leftOffset}px` : undefined,
                             backgroundColor: isColumnBlocked
@@ -1341,7 +1366,10 @@ export const PerformanceBoard = () => {
                           >
                             {hasAggregate && aggregateValue ? (
                               column.aggregate === "avg" ? (
-                                <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                                <span
+                                  className="flex items-center gap-1.5 text-sm text-slate-700 truncate"
+                                  title={`AVG: ${aggregateValue}`}
+                                >
                                   <span className="uppercase tracking-wide text-[11px] font-semibold">
                                     AVG:
                                   </span>
@@ -1350,7 +1378,14 @@ export const PerformanceBoard = () => {
                                   </span>
                                 </span>
                               ) : (
-                                <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                                <span
+                                  className="flex items-center gap-1.5 text-sm text-slate-700 truncate"
+                                  title={`${column.aggregate === "min"
+                                    ? "MIN"
+                                    : column.aggregate === "max"
+                                    ? "MAX"
+                                    : "SUM"}: ${aggregateValue}`}
+                                >
                                   <span className="uppercase tracking-wide text-[11px] font-semibold">
                                     {column.aggregate === "min"
                                       ? "MIN"
