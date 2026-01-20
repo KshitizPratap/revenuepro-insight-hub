@@ -396,13 +396,14 @@ export const LeadFiltersAndControls = React.memo(({
         )}
         
         {/* Add Leads Button */}
-        <button
+        {/* DISABLED: Feature in progress */}
+        {/* <button
           onClick={() => setIsAddLeadsModalOpen(true)}
           className="h-8 flex items-center gap-1 px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium shadow-sm border-0"
         >
           <Plus className="w-3 h-3" />
           Add Leads
-        </button>
+        </button> */}
         
         {/* Export Dropdown */}
         <Select onValueChange={(value) => exportToExcel(value as 'current' | 'all')}>
