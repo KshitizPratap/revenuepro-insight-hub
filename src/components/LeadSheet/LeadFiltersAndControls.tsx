@@ -141,15 +141,27 @@ export const LeadFiltersAndControls = React.memo(({
               }}
             >
               <SelectTrigger className="h-8 bg-gray-50 border-0 hover:bg-gray-100 focus:bg-white focus:border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all rounded-lg text-xs">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder="All Statuses">
+                  {currentFilters.status && (
+                    <span className={`px-2 py-1 rounded text-xs border ${getStatusInfo(currentFilters.status).color}`}>
+                      {getStatusInfo(currentFilters.status).label}
+                    </span>
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {filterOptions?.statuses.map(status => (
-                  <SelectItem key={status} value={status}>
-                    {getStatusInfo(status).label}
-                  </SelectItem>
-                ))}
+                {filterOptions?.statuses.map(status => {
+                  const statusInfo = getStatusInfo(status);
+                  return (
+                    <SelectItem key={status} value={status}>
+                      <span className="inline-flex items-center gap-2">
+                        <div className={`w-2 h-2 ${statusInfo.dotColor} rounded-full`}></div>
+                        {statusInfo.label}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -194,7 +206,7 @@ export const LeadFiltersAndControls = React.memo(({
                 </Badge>
               )}
               {currentFilters.status && (
-                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                <Badge variant="secondary" className={`text-xs border ${getStatusInfo(currentFilters.status).color}`}>
                   Status: {getStatusInfo(currentFilters.status).label}
                 </Badge>
               )}
