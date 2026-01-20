@@ -404,10 +404,41 @@ interface AdCardMediaProps {
 }
 
 export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }: AdCardMediaProps) {
+  const [isImageLoading, setIsImageLoading] = React.useState(true);
+  const [hasImageError, setHasImageError] = React.useState(false);
+  
   const isVideo = React.useMemo(() => creative?.mediaType === 'VIDEO', [creative?.mediaType]);
-  const isDynamicVideo = React.useMemo(() => {
-    return creative?.creativeMode === 'DYNAMIC_ASSET_FEED' && creative?.mediaType === 'VIDEO';
-  }, [creative?.creativeMode, creative?.mediaType]);
+  const isDynamicVideo = React.useMemo(
+    () => creative?.creativeMode === 'DYNAMIC_ASSET_FEED' && creative?.mediaType === 'VIDEO',
+    [creative?.creativeMode, creative?.mediaType]
+  );
+
+  const previewIframe = React.useMemo(() => {
+    if (!isDynamicVideo) return null;
+    if (creative?.previewIframe && creative.previewIframe.length > 0) {
+      return creative.previewIframe[0];
+    }
+    return null;
+  }, [isDynamicVideo, creative?.previewIframe]);
+
+  const dynamicVideoScrollRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll dynamic video previews to ~40% height once after load
+  React.useEffect(() => {
+    if (!isDynamicVideo || !previewIframe) return;
+
+    const container = dynamicVideoScrollRef.current;
+    if (!container) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const targetScroll = container.scrollHeight * 0.45;
+      container.scrollTop = targetScroll;
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isDynamicVideo, previewIframe]);
   
   const imageUrl = React.useMemo(() => {
     if (!creative) return null;
@@ -426,8 +457,21 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
     return getAdCardImageUrl(creative);
   }, [creative, isVideo, isDynamicVideo]);
 
+  React.useEffect(() => {
+    if (imageUrl) {
+      setIsImageLoading(true);
+      setHasImageError(false);
+    }
+  }, [imageUrl]);
+
+  const handleImageLoad = React.useCallback(() => {
+    setIsImageLoading(false);
+  }, []);
+
   const handleImageError = React.useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('[AdCardMedia] Image/Thumbnail failed to load:', imageUrl);
+    setIsImageLoading(false);
+    setHasImageError(true);
   }, [imageUrl]);
 
   if (!creative) {
@@ -439,6 +483,33 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
         <span className="text-xs text-gray-400">No Media</span>
       </div>
     );
+  }
+
+  if (isDynamicVideo && previewIframe) {
+    const iframeProps = renderPreviewIframe(previewIframe);
+    if (iframeProps) {
+      return (
+        <div className="w-full h-full bg-gray-100 overflow-hidden">
+          <div ref={dynamicVideoScrollRef} className="w-full h-full overflow-hidden">
+            {iframeProps.src ? (
+              <iframe
+                src={iframeProps.src}
+                width={iframeProps.width || '100%'}
+                height={iframeProps.height || '690'}
+                className="w-full border-0"
+                style={{ minHeight: '690px', pointerEvents: 'none' }}
+                scrolling="no"
+              />
+            ) : iframeProps.dangerouslySetInnerHTML ? (
+              <div
+                dangerouslySetInnerHTML={iframeProps.dangerouslySetInnerHTML}
+                className="w-full"
+              />
+            ) : null}
+          </div>
+        </div>
+      );
+    }
   }
 
   if (isDynamicVideo) {
@@ -455,15 +526,26 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
 
   if (imageUrl) {
     return (
-      <img
-        src={imageUrl}
-        alt={adName || 'Ad creative'}
-        className="w-full h-full object-cover"
-        loading="eager"
-        crossOrigin="anonymous"
-        style={{ imageRendering: '-webkit-optimize-contrast' }}
-        onError={handleImageError}
-      />
+      <div className="w-full h-full relative">
+        {isImageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs text-gray-500">Loading...</span>
+            </div>
+          </div>
+        )}
+        <img
+          src={imageUrl}
+          alt={adName || 'Ad creative'}
+          className="w-full h-full object-cover"
+          loading="eager"
+          crossOrigin="anonymous"
+          style={{ imageRendering: '-webkit-optimize-contrast' }}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+        />
+      </div>
     );
   }
 
@@ -488,9 +570,3 @@ export const AdCardMedia = React.memo(function AdCardMedia({ creative, adName }:
   return true;
 });
 
-export function renderAdCardMedia(
-  creative: Creative | undefined | null,
-  adName?: string
-): React.ReactElement {
-  return <AdCardMedia creative={creative} adName={adName} />;
-}
